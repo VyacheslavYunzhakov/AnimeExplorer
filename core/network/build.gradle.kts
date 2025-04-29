@@ -1,5 +1,3 @@
-import org.gradle.declarative.dsl.schema.FqName.Empty.packageName
-
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)

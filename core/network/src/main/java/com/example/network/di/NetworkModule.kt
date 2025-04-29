@@ -3,7 +3,6 @@ package com.example.network.di
 import com.apollographql.apollo3.ApolloClient
 import com.example.network.HomeApi
 import com.example.network.HomeApiImpl
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

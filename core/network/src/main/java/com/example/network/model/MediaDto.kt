@@ -11,15 +11,3 @@ data class TitleDto(
     val english: String? = null
 )
 
-private data class PageResponse(
-    val data: DataContainer
-)
-
-private data class DataContainer(
-    val Page: PageContainer
-)
-
-private data class PageContainer(
-    val media: List<MediaDto>
-)
-
