@@ -5,4 +5,6 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.apollo) apply false
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22" apply false
 }

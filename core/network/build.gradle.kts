@@ -1,6 +1,18 @@
+import org.gradle.declarative.dsl.schema.FqName.Empty.packageName
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.apollo)
+    alias(libs.plugins.hilt)
+    kotlin("kapt")
+}
+
+apollo {
+    service("anilist") {
+        packageName.set("com.example.core.network")
+         schemaFile.set(file("src/main/graphql/schema.json"))
+    }
 }
 
 android {
@@ -37,6 +49,9 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+    implementation(libs.apollo)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

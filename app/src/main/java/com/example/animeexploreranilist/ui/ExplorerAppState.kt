@@ -1,4 +1,4 @@
-package com.example.spacexexplorer.ui
+package com.example.animeexploreranilist.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember

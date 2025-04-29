@@ -1,9 +1,11 @@
-package com.example.spacexexplorer.navigation
+package com.example.animeexploreranilist.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
-import com.example.spacexexplorer.ui.ExplorerAppState
+import com.example.home.navigation.HomeBaseRoute
+import com.example.home.navigation.homeScreen
+import com.example.animeexploreranilist.ui.ExplorerAppState
 
 @Composable
 fun ExplorerNavHost(
@@ -14,11 +16,11 @@ fun ExplorerNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = HomeRoute,
+        startDestination = HomeBaseRoute,
         modifier = modifier
     ) {
         homeScreen(
-            onLaunchClick = { /*launchId ->
+            onMediaClick = { /*launchId ->
                 navController.navigateToLaunchDetails(launchId)*/
             }
         )

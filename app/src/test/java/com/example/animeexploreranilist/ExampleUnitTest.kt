@@ -1,4 +1,4 @@
-package com.example.spacexexplorer
+package com.example.animeexploreranilist
 
 import org.junit.Test
 

@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.spacexexplorer"
+    namespace = "com.example.animeexploreranilist"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.spacexexplorer"
+        applicationId = "com.example.animeexploreranilist"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -43,6 +43,10 @@ android {
 
 dependencies {
 
+    implementation(project(":core:network"))
+    implementation(project(":feature:home"))
+    implementation(project(":core:data"))
+    implementation(project(":core:domain"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
