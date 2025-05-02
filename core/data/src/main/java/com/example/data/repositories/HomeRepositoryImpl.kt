@@ -14,7 +14,7 @@ class HomeRepositoryImpl @Inject constructor(
         return mediaList.map { dto ->
             Media(
                 id = dto.id,
-                bannerImage = dto.bannerImage,
+                coverImage = dto.coverImage,
                 title = dto.title?.english,
                 averageScore = dto.averageScore
             )

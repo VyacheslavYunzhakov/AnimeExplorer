@@ -2,7 +2,9 @@ query GetPage {
     Page(page: 1, perPage: 10) {
         media {
             id
-            bannerImage
+            coverImage {
+                large
+            }
             averageScore
             title {
                 english

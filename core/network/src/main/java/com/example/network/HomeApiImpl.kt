@@ -20,7 +20,7 @@ class HomeApiImpl @Inject constructor(
                 media?.let {
                     MediaDto(
                         id              = it.id,
-                        bannerImage  = it.bannerImage.orEmpty(),
+                        coverImage  = it.coverImage?.large,
                         averageScore    = it.averageScore,
                         title           = TitleDto(english = it.title?.english.orEmpty())
                     )

@@ -19,7 +19,7 @@ data class HomeViewState(
 
 data class MediaUiModel(
     val id: Int,
-    val bannerImage: String?,
+    val coverImage: String?,
     val title: String?,
     val averageScore: Int?
 )
@@ -44,7 +44,7 @@ class HomeViewModel @Inject constructor(
                 val uiList = domainList.map { domain ->
                     MediaUiModel(
                         id = domain.id,
-                        bannerImage = domain.bannerImage,
+                        coverImage = domain.coverImage,
                         title = domain.title,
                         averageScore = domain.averageScore
                     )
