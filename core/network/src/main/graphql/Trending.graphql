@@ -1,0 +1,16 @@
+query Trending {
+    Page(page: 1, perPage: 10) {
+        media(
+            sort: TRENDING_DESC,
+            type: ANIME
+        ) {
+            title {
+                english
+            }
+            coverImage {
+                large
+            }
+            averageScore
+        }
+    }
+}

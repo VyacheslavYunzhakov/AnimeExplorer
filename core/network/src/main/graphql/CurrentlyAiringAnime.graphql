@@ -1,0 +1,17 @@
+query CurrentlyAiringAnime {
+    Page(page: 1, perPage: 10) {
+        media(
+            status: RELEASING,
+            type: ANIME,
+            sort: POPULARITY_DESC
+        ) {
+            title {
+                english
+            }
+            coverImage {
+                large
+            }
+            averageScore
+        }
+    }
+}

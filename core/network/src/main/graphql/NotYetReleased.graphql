@@ -1,0 +1,17 @@
+query NotYetReleased {
+    Page(page: 1, perPage: 10) {
+        media(
+            status: NOT_YET_RELEASED,
+            type: ANIME,
+            sort: START_DATE
+        ) {
+            title {
+                english
+            }
+            coverImage {
+                large
+            }
+            averageScore
+        }
+    }
+}
