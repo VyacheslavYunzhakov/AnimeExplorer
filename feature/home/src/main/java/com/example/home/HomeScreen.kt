@@ -4,11 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -27,8 +28,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Alignment
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.AsyncImage
 
 
@@ -96,44 +96,21 @@ fun HomeScreen(
 fun MediaItem(media: MediaUiModel) {
     Column(
         modifier = Modifier
-            .wrapContentSize()
+            .width(150.dp)
             .padding(16.dp)
     ) {
         media.coverImage?.let {
-            ImageThenTextLayout(it, media.title)
+            AsyncImage(
+                model = it,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(3f/4f)
+            )
         }
-        Text(
-            text = "Score: ${media.averageScore ?: "N/A"}",
-            style = MaterialTheme.typography.bodySmall
-        )
-    }
-}
-
-@Composable
-fun ImageThenTextLayout(imageUrl: String, text: String?) {
-    Layout(
-        content = {
-            AsyncImage(model = imageUrl, contentDescription = null)
-            Spacer(Modifier.height(8.dp))
-            Text(text = text.toString(),maxLines = 2,overflow = TextOverflow.Ellipsis)
-        }
-    ) { measurables, constraints ->
-
-        val imagePlaceable = measurables[0].measure(constraints)
-        val imageWidth = imagePlaceable.width
-
-        val spacerPlaceable = measurables[1].measure(constraints)
-
-        val textPlaceable = measurables[2].measure(
-            constraints.copy(minWidth = imageWidth, maxWidth = imageWidth)
-        )
-        val totalHeight = imagePlaceable.height + spacerPlaceable.height + textPlaceable.height
-
-        layout(width = imageWidth, height = totalHeight) {
-            imagePlaceable.place(0, 0)
-            spacerPlaceable.place(0, imagePlaceable.height)
-            textPlaceable.place(0, imagePlaceable.height + spacerPlaceable.height)
-        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(text = media.title.orEmpty(), style = MaterialTheme.typography.titleMedium)
+        Text(text = "Score: ${media.averageScore ?: "N/A"}", style = MaterialTheme.typography.bodySmall)
     }
 }
 
