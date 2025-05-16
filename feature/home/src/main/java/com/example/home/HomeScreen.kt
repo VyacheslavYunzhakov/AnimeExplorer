@@ -1,12 +1,15 @@
 package com.example.home
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -26,27 +29,43 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
+import coil.request.ImageRequest
+
+enum class MediaSectionType(@StringRes val titleResId: Int) {
+    UPCOMING(R.string.upcoming_anime),
+    TRENDING(R.string.trending_anime),
+    CURRENTLY_AIRING(R.string.currently_airing)
+}
 
 @Composable
 fun MediaSection(
-    title: String,
+    sectionType: MediaSectionType,
     media: List<MediaUiModel>,
     isLoading: Boolean,
     errorMessage: String?,
-    onMediaClick: (MediaUiModel) -> Unit
+    onMediaClick: (MediaUiModel) -> Unit,
+    onErrorClick: (MediaSectionType) -> Unit,
+    isOnline: Boolean
 ) {
     val listState = rememberLazyListState()
 
@@ -58,11 +77,13 @@ fun MediaSection(
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         Text(
             modifier = Modifier.padding(start = 16.dp),
-            text = title,
+            text = LocalContext.current.getString(sectionType.titleResId),
             style = MaterialTheme.typography.titleMedium
         )
 
-        Box(modifier = Modifier.fillMaxWidth().height(280.dp)) {
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .height(280.dp)) {
             when {
                 isLoading && media.isEmpty() -> {
                     LazyRow {
@@ -74,7 +95,11 @@ fun MediaSection(
                     Text(
                         text = errorMessage,
                         color = Color.Red,
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .clickable {
+                                onErrorClick(sectionType)
+                            },
                     )
                 }
 
@@ -82,7 +107,7 @@ fun MediaSection(
                     LazyRow(state = listState) {
                         itemsIndexed(media) { index, item ->
                             val isVisible = visibleItemsRange.value.contains(index)
-                            MediaItem(media = item, isVisible = isVisible)
+                            MediaItem(media = item, isVisible = isVisible, isOnline)
                         }
                     }
                 }
@@ -97,10 +122,18 @@ fun HomeScreen(
     onMediaClick: (MediaUiModel) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
+    val isOnline by viewModel.isOnline.collectAsStateWithLifecycle()
     val upcomingState by viewModel.uiUpcomingState.collectAsStateWithLifecycle()
     val trendingState by viewModel.uiTrendingState.collectAsStateWithLifecycle()
     val airingState by viewModel.uiAiringState.collectAsStateWithLifecycle()
-    HomeContent(upcomingState, trendingState, airingState, onMediaClick)
+    fun reloadSection(type: MediaSectionType) {
+        when (type) {
+            MediaSectionType.UPCOMING -> viewModel.loadUpcoming()
+            MediaSectionType.TRENDING -> viewModel.loadTrending()
+            MediaSectionType.CURRENTLY_AIRING -> viewModel.loadAiring()
+        }
+    }
+    HomeContent(upcomingState, trendingState, airingState, onMediaClick, ::reloadSection, isOnline)
 }
 
 @Composable
@@ -109,6 +142,8 @@ fun HomeContent (
     trendingState: MediaSectionState,
     airingState: MediaSectionState,
     onMediaClick: (MediaUiModel) -> Unit,
+    onErrorClick: (MediaSectionType) -> Unit,
+    isOnline: Boolean
 ) {
 
     val scrollState = rememberScrollState()
@@ -119,25 +154,31 @@ fun HomeContent (
             .verticalScroll(scrollState)
     ) {
         MediaSection(
-            title = "Upcoming Anime",
+            sectionType = MediaSectionType.UPCOMING,
             media = upcomingState.media,
             isLoading = upcomingState.isLoading,
             errorMessage = upcomingState.errorMessage,
-            onMediaClick = onMediaClick
+            onMediaClick = onMediaClick,
+            onErrorClick = onErrorClick,
+            isOnline
         )
         MediaSection(
-            title = "Trending Anime",
+            sectionType = MediaSectionType.TRENDING,
             media = trendingState.media,
             isLoading = trendingState.isLoading,
             errorMessage = trendingState.errorMessage,
-            onMediaClick = onMediaClick
+            onMediaClick = onMediaClick,
+            onErrorClick = onErrorClick,
+            isOnline
         )
         MediaSection(
-            title = "Currently Airing",
+            sectionType = MediaSectionType.CURRENTLY_AIRING,
             media = airingState.media,
             isLoading = airingState.isLoading,
             errorMessage = airingState.errorMessage,
-            onMediaClick = onMediaClick
+            onMediaClick = onMediaClick,
+            onErrorClick = onErrorClick,
+            isOnline
         )
     }
 }
@@ -157,7 +198,9 @@ fun HomeContent_Preview() {
                 upcomingState = sampleState,
                 trendingState = sampleState,
                 airingState = sampleState,
-                onMediaClick = { /* no-op */ }
+                onMediaClick = { /* no-op */ },
+                onErrorClick = {},
+                true
             )
         }
     }
@@ -165,25 +208,45 @@ fun HomeContent_Preview() {
 }
 
 @Composable
-fun MediaItem(media: MediaUiModel, isVisible: Boolean) {
-    var loaded = false
+fun MediaItem(
+    media: MediaUiModel,
+    isVisible: Boolean,
+    isOnline: Boolean
+) {
     val brush = shimmerBrush()
+    val context = LocalContext.current
+
+    // 1) Build a request that WILL cache to memory/disk.
+    val request = ImageRequest.Builder(context)
+        .data(media.coverImage)
+        .diskCachePolicy(CachePolicy.ENABLED)
+        .memoryCachePolicy(CachePolicy.ENABLED)
+        .build()
+
+    // 2) Create and remember the painter
+    val painter = rememberAsyncImagePainter(request)
+    val painterState = painter.state
+
+    // 3) Decide whether to show the image:
+    //    • painterState is Success → we’ve already loaded it before
+    //    • OR (isVisible && isOnline) → first time load
+    val shouldDisplayImage = painterState is AsyncImagePainter.State.Success ||
+            (isVisible && isOnline)
+
     Column(
         modifier = Modifier
             .width(150.dp)
             .padding(16.dp)
     ) {
-        if (isVisible && !loaded && media.coverImage != null) {
-            AsyncImage(
-                model = media.coverImage,
+        if (shouldDisplayImage && media.coverImage != null) {
+            Image(
+                painter = painter,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(3f / 4f)
             )
-            loaded = true
         } else {
-            // Optional: Placeholder while not visible
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -191,12 +254,20 @@ fun MediaItem(media: MediaUiModel, isVisible: Boolean) {
                     .background(brush)
             )
         }
+
         Spacer(modifier = Modifier.height(8.dp))
-        Text(maxLines = 2, text = media.title.orEmpty(), style = MaterialTheme.typography.titleMedium, minLines = 2)
-        Text(text = "Score: ${media.averageScore ?: "N/A"}", style = MaterialTheme.typography.bodySmall)
+
+        Text(
+            text = media.title.orEmpty(),
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 2, minLines = 2
+        )
+        Text(
+            text = "Score: ${media.averageScore ?: "N/A"}",
+            style = MaterialTheme.typography.bodySmall
+        )
     }
 }
-
 @Composable
 private fun shimmerBrush(): Brush {
 

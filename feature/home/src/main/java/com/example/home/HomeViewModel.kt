@@ -3,11 +3,14 @@ package com.example.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.interactors.HomeInteractor
+import com.example.domain.interactors.NetworkMonitor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,8 +28,11 @@ data class MediaUiModel(
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val interactor: HomeInteractor
+    private val interactor: HomeInteractor,
+    private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
+
+    val isOnline = networkMonitor.isConnected.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 
     private val _uiUpcomingState = MutableStateFlow(MediaSectionState(isLoading = true))
     val uiUpcomingState: StateFlow<MediaSectionState> = _uiUpcomingState.asStateFlow()
@@ -47,7 +53,7 @@ class HomeViewModel @Inject constructor(
         loadTrending()
     }
 
-    private fun loadUpcoming() {
+    internal fun loadUpcoming() {
         viewModelScope.launch {
             _uiUpcomingState.update { it.copy(media = emptyList(), isLoading = true, errorMessage = null) }
             try {
@@ -77,7 +83,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun loadTrending() {
+    internal fun loadTrending() {
         viewModelScope.launch {
             _uiTrendingState.update { it.copy(media = emptyList(), isLoading = true, errorMessage = null) }
             try {
@@ -107,7 +113,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun loadAiring() {
+    internal fun loadAiring() {
         viewModelScope.launch {
             _uiAiringState.update { it.copy(media = emptyList(), isLoading = true, errorMessage = null) }
             try {
