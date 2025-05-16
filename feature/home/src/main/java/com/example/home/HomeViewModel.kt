@@ -11,12 +11,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class HomeViewState(
+data class MediaSectionState (
     val media: List<MediaUiModel> = emptyList(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 )
-
 data class MediaUiModel(
     val id: Int,
     val coverImage: String?,
@@ -29,18 +28,30 @@ class HomeViewModel @Inject constructor(
     private val interactor: HomeInteractor
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(HomeViewState(isLoading = true))
-    val uiState: StateFlow<HomeViewState> = _uiState.asStateFlow()
+    private val _uiUpcomingState = MutableStateFlow(MediaSectionState(isLoading = true))
+    val uiUpcomingState: StateFlow<MediaSectionState> = _uiUpcomingState.asStateFlow()
+
+    private val _uiTrendingState = MutableStateFlow(MediaSectionState(isLoading = true))
+    val uiTrendingState: StateFlow<MediaSectionState> = _uiTrendingState.asStateFlow()
+
+    private val _uiAiringState = MutableStateFlow(MediaSectionState(isLoading = true))
+    val uiAiringState: StateFlow<MediaSectionState> = _uiAiringState.asStateFlow()
 
     init {
         loadMediaPage()
     }
 
     private fun loadMediaPage() {
+        loadUpcoming()
+        loadAiring()
+        loadTrending()
+    }
+
+    private fun loadUpcoming() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiUpcomingState.update { it.copy(media = emptyList(), isLoading = true, errorMessage = null) }
             try {
-                val domainList = interactor.getMediaPage()
+                val domainList = interactor.getUpcomingPage()
                 val uiList = domainList.map { domain ->
                     MediaUiModel(
                         id = domain.id,
@@ -49,14 +60,74 @@ class HomeViewModel @Inject constructor(
                         averageScore = domain.averageScore
                     )
                 }
-                _uiState.update {
+                _uiUpcomingState.update {
                     it.copy(
                         media = uiList,
                         isLoading = false
                     )
                 }
             } catch (t: Throwable) {
-                _uiState.update {
+                _uiUpcomingState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = t.message ?: "Unknown error"
+                    )
+                }
+            }
+        }
+    }
+
+    private fun loadTrending() {
+        viewModelScope.launch {
+            _uiTrendingState.update { it.copy(media = emptyList(), isLoading = true, errorMessage = null) }
+            try {
+                val domainList = interactor.getTrendingPage()
+                val uiList = domainList.map { domain ->
+                    MediaUiModel(
+                        id = domain.id,
+                        coverImage = domain.coverImage,
+                        title = domain.title,
+                        averageScore = domain.averageScore
+                    )
+                }
+                _uiTrendingState.update {
+                    it.copy(
+                        media = uiList,
+                        isLoading = false
+                    )
+                }
+            } catch (t: Throwable) {
+                _uiTrendingState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = t.message ?: "Unknown error"
+                    )
+                }
+            }
+        }
+    }
+
+    private fun loadAiring() {
+        viewModelScope.launch {
+            _uiAiringState.update { it.copy(media = emptyList(), isLoading = true, errorMessage = null) }
+            try {
+                val domainList = interactor.getAiringPage()
+                val uiList = domainList.map { domain ->
+                    MediaUiModel(
+                        id = domain.id,
+                        coverImage = domain.coverImage,
+                        title = domain.title,
+                        averageScore = domain.averageScore
+                    )
+                }
+                _uiAiringState.update {
+                    it.copy(
+                        media = uiList,
+                        isLoading = false
+                    )
+                }
+            } catch (t: Throwable) {
+                _uiAiringState.update {
                     it.copy(
                         isLoading = false,
                         errorMessage = t.message ?: "Unknown error"

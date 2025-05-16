@@ -4,6 +4,7 @@ query Trending {
             sort: TRENDING_DESC,
             type: ANIME
         ) {
+            id
             title {
                 english
             }

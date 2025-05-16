@@ -1,6 +1,5 @@
 package com.example.home
 
-import android.R
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -17,79 +16,130 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.AsyncImage
 
-
 @Composable
-fun HomeContent(
-    state: HomeViewState,
-    onMediaClick: (MediaUiModel) -> Unit,
-    listState: LazyListState = rememberLazyListState()
+fun MediaSection(
+    title: String,
+    media: List<MediaUiModel>,
+    isLoading: Boolean,
+    errorMessage: String?,
+    onMediaClick: (MediaUiModel) -> Unit
 ) {
-    Column {
-        Text(modifier = Modifier.padding(start = 16.dp, top = 16.dp), text = stringResource(com.example.home.R.string.not_yet_released), style = MaterialTheme.typography.titleMedium)
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (state.isLoading && state.media.isEmpty()) {
-                LazyRow {
-                    items(10) { ShimmerMediaItem() }
-                }
-            } else {
-                LazyRow(state = listState) {
-                    items(state.media) { media ->
-                        MediaItem(media = media)
-                    }
+    val listState = rememberLazyListState()
 
-                    if (state.isLoading) {
-                        item {
-                            CircularProgressIndicator(
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .align(Alignment.Center)
-                            )
+    val visibleItemsRange = remember {
+        derivedStateOf {
+            listState.layoutInfo.visibleItemsInfo.map { it.index }.toSet()
+        }
+    }
+    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+        Text(
+            modifier = Modifier.padding(start = 16.dp),
+            text = title,
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Box(modifier = Modifier.fillMaxWidth().height(280.dp)) {
+            when {
+                isLoading && media.isEmpty() -> {
+                    LazyRow {
+                        items(10) { ShimmerMediaItem() }
+                    }
+                }
+
+                errorMessage != null -> {
+                    Text(
+                        text = errorMessage,
+                        color = Color.Red,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+
+                else -> {
+                    LazyRow(state = listState) {
+                        itemsIndexed(media) { index, item ->
+                            val isVisible = visibleItemsRange.value.contains(index)
+                            MediaItem(media = item, isVisible = isVisible)
                         }
                     }
                 }
             }
-
-            state.errorMessage?.let { error ->
-                Text(
-                    text = error,
-                    color = Color.Red,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
         }
     }
 }
+
 
 @Composable
 fun HomeScreen(
     onMediaClick: (MediaUiModel) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
-    HomeContent(state = state, onMediaClick = onMediaClick)
+    val upcomingState by viewModel.uiUpcomingState.collectAsStateWithLifecycle()
+    val trendingState by viewModel.uiTrendingState.collectAsStateWithLifecycle()
+    val airingState by viewModel.uiAiringState.collectAsStateWithLifecycle()
+    HomeContent(upcomingState, trendingState, airingState, onMediaClick)
+}
+
+@Composable
+fun HomeContent (
+    upcomingState: MediaSectionState,
+    trendingState: MediaSectionState,
+    airingState: MediaSectionState,
+    onMediaClick: (MediaUiModel) -> Unit,
+) {
+
+    val scrollState = rememberScrollState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+    ) {
+        MediaSection(
+            title = "Upcoming Anime",
+            media = upcomingState.media,
+            isLoading = upcomingState.isLoading,
+            errorMessage = upcomingState.errorMessage,
+            onMediaClick = onMediaClick
+        )
+        MediaSection(
+            title = "Trending Anime",
+            media = trendingState.media,
+            isLoading = trendingState.isLoading,
+            errorMessage = trendingState.errorMessage,
+            onMediaClick = onMediaClick
+        )
+        MediaSection(
+            title = "Currently Airing",
+            media = airingState.media,
+            isLoading = airingState.isLoading,
+            errorMessage = airingState.errorMessage,
+            onMediaClick = onMediaClick
+        )
+    }
 }
 
 // Now your preview only needs to feed HomeContent:
@@ -98,13 +148,15 @@ fun HomeScreen(
 fun HomeContent_Preview() {
     MaterialTheme {
         Surface {
-            val sampleState = HomeViewState(
+            val sampleState = MediaSectionState(
                 media = emptyList(),
                 isLoading = true,
                 errorMessage = null
             )
             HomeContent(
-                state = sampleState,
+                upcomingState = sampleState,
+                trendingState = sampleState,
+                airingState = sampleState,
                 onMediaClick = { /* no-op */ }
             )
         }
@@ -113,23 +165,34 @@ fun HomeContent_Preview() {
 }
 
 @Composable
-fun MediaItem(media: MediaUiModel) {
+fun MediaItem(media: MediaUiModel, isVisible: Boolean) {
+    var loaded = false
+    val brush = shimmerBrush()
     Column(
         modifier = Modifier
             .width(150.dp)
             .padding(16.dp)
     ) {
-        media.coverImage?.let {
+        if (isVisible && !loaded && media.coverImage != null) {
             AsyncImage(
-                model = it,
+                model = media.coverImage,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(3f / 4f)
             )
+            loaded = true
+        } else {
+            // Optional: Placeholder while not visible
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(3f / 4f)
+                    .background(brush)
+            )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Text(maxLines = 2, text = media.title.orEmpty(), style = MaterialTheme.typography.titleMedium)
+        Text(maxLines = 2, text = media.title.orEmpty(), style = MaterialTheme.typography.titleMedium, minLines = 2)
         Text(text = "Score: ${media.averageScore ?: "N/A"}", style = MaterialTheme.typography.bodySmall)
     }
 }

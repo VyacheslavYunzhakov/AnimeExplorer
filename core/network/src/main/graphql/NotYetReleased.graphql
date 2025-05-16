@@ -5,6 +5,7 @@ query NotYetReleased {
             type: ANIME,
             sort: START_DATE
         ) {
+            id
             title {
                 english
             }
