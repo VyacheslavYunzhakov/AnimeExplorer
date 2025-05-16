@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -51,6 +53,32 @@ class HomeViewModel @Inject constructor(
         loadUpcoming()
         loadAiring()
         loadTrending()
+        viewModelScope.launch {
+            networkMonitor.isConnected
+                .distinctUntilChanged()    // only when online/offline actually flips
+                .filter { it }              // only when it becomes `true` (online)
+                .collect {
+                    reloadFailedOrEmpty()
+                }
+        }
+    }
+
+    private fun reloadFailedOrEmpty() {
+        if (_uiUpcomingState.value.errorMessage != null ||
+            (_uiUpcomingState.value.media.isEmpty() && !_uiUpcomingState.value.isLoading)
+        ) {
+            loadUpcoming()
+        }
+        if (_uiTrendingState.value.errorMessage != null ||
+            (_uiTrendingState.value.media.isEmpty() && !_uiTrendingState.value.isLoading)
+        ) {
+            loadTrending()
+        }
+        if (_uiAiringState.value.errorMessage != null ||
+            (_uiAiringState.value.media.isEmpty() && !_uiAiringState.value.isLoading)
+        ) {
+            loadAiring()
+        }
     }
 
     internal fun loadUpcoming() {
