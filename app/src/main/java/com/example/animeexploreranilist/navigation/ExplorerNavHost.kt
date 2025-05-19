@@ -6,6 +6,8 @@ import androidx.navigation.compose.NavHost
 import com.example.home.navigation.HomeBaseRoute
 import com.example.home.navigation.homeScreen
 import com.example.animeexploreranilist.ui.ExplorerAppState
+import com.example.mediainfo.navigation.mediaInfoScreen
+import com.example.mediainfo.navigation.navigateToMediaInfo
 
 @Composable
 fun ExplorerNavHost(
@@ -20,10 +22,12 @@ fun ExplorerNavHost(
         modifier = modifier
     ) {
         homeScreen(
-            onMediaClick = { /*launchId ->
-                navController.navigateToLaunchDetails(launchId)*/
+            onMediaClick = { media ->
+                navController.navigateToMediaInfo(media.id)
             }
         )
-
+        mediaInfoScreen(
+            onBackClick = navController::popBackStack
+        )
     }
 }

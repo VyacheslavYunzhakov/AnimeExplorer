@@ -5,6 +5,7 @@ query CurrentlyAiringAnime {
             type: ANIME,
             sort: POPULARITY_DESC
         ) {
+            id
             title {
                 english
             }

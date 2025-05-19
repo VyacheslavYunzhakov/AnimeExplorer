@@ -3,6 +3,8 @@ package com.example.network.di
 import com.apollographql.apollo3.ApolloClient
 import com.example.network.api.FetchingAnimePageApi
 import com.example.network.api.FetchingAnimePageApiImpl
+import com.example.network.api.MediaInfoApi
+import com.example.network.api.MediaInfoApiImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,6 +27,12 @@ object NetworkModule {
     @Singleton
     fun provideUpcomingApi(apolloClient: ApolloClient): FetchingAnimePageApi {
         return FetchingAnimePageApiImpl(apolloClient)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMediaInfoApi(apolloClient: ApolloClient): MediaInfoApi {
+        return MediaInfoApiImpl(apolloClient)
     }
 
 }

@@ -11,6 +11,7 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+@Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -19,9 +20,10 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SpaceXExplorer"
+rootProject.name = "AnimeExplorerAniList"
 include(":app")
 include(":core:data")
 include(":core:domain")
 include(":core:network")
 include(":feature:home")
+include(":feature:mediainfo")

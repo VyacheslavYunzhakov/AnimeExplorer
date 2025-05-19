@@ -45,6 +45,7 @@ dependencies {
 
     implementation(project(":core:network"))
     implementation(project(":feature:home"))
+    implementation(project(":feature:mediainfo"))
     implementation(project(":core:data"))
     implementation(project(":core:domain"))
     implementation(libs.androidx.core.ktx)
