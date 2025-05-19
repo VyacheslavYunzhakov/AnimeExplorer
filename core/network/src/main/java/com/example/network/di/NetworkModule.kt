@@ -1,12 +1,8 @@
 package com.example.network.di
 
 import com.apollographql.apollo3.ApolloClient
-import com.example.network.api.AiringApi
-import com.example.network.api.AiringApiImpl
-import com.example.network.api.TrendingApi
-import com.example.network.api.TrendingApiImpl
-import com.example.network.api.UpcomingApi
-import com.example.network.api.UpcomingApiImpl
+import com.example.network.api.FetchingAnimePageApi
+import com.example.network.api.FetchingAnimePageApiImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,19 +23,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideUpcomingApi(apolloClient: ApolloClient): UpcomingApi {
-        return UpcomingApiImpl(apolloClient)
+    fun provideUpcomingApi(apolloClient: ApolloClient): FetchingAnimePageApi {
+        return FetchingAnimePageApiImpl(apolloClient)
     }
 
-    @Provides
-    @Singleton
-    fun provideTrendingApi(apolloClient: ApolloClient): TrendingApi {
-        return TrendingApiImpl(apolloClient)
-    }
-
-    @Provides
-    @Singleton
-    fun provideAiringApi(apolloClient: ApolloClient): AiringApi {
-        return AiringApiImpl(apolloClient)
-    }
 }

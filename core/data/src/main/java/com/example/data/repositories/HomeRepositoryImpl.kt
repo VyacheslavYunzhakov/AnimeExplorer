@@ -1,19 +1,15 @@
 package com.example.data.repositories
 
 import com.example.data.model.Media
-import com.example.network.api.AiringApi
-import com.example.network.api.TrendingApi
-import com.example.network.api.UpcomingApi
+import com.example.network.api.FetchingAnimePageApi
 import javax.inject.Inject
 
 class HomeRepositoryImpl @Inject constructor(
-    private val upcomingApi: UpcomingApi,
-    private val trendingApi: TrendingApi,
-    private val airingApi: AiringApi
+    private val fetchingAnimePageApi: FetchingAnimePageApi
 ) : HomeRepository {
 
     override suspend fun getUpcomingPage(): List<Media> {
-        val mediaList = upcomingApi.fetchUpcomingPage()
+        val mediaList = fetchingAnimePageApi.fetchUpcomingPage()
         return mediaList.map { dto ->
             Media(
                 id = dto.id,
@@ -25,7 +21,7 @@ class HomeRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getTrendingPage(): List<Media> {
-        val mediaList = trendingApi.fetchTrendingPage()
+        val mediaList = fetchingAnimePageApi.fetchTrendingPage()
         return mediaList.map { dto ->
             Media(
                 id = dto.id,
@@ -37,7 +33,7 @@ class HomeRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAiringPage(): List<Media> {
-        val mediaList = airingApi.fetchAiringPage()
+        val mediaList = fetchingAnimePageApi.fetchAiringPage()
         return mediaList.map { dto ->
             Media(
                 id = dto.id,
