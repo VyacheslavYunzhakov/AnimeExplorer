@@ -103,7 +103,7 @@ fun MediaSection(
                     LazyRow(state = listState) {
                         itemsIndexed(media) { index, item ->
                             val isVisible = visibleItemsRange.value.contains(index)
-                            MediaItem(media = item, isVisible = isVisible, isOnline)
+                            MediaItem(media = item, isVisible = isVisible, isOnline, onMediaClick)
                         }
                     }
                 }
@@ -207,7 +207,8 @@ fun HomeContent_Preview() {
 fun MediaItem(
     media: MediaUiModel,
     isVisible: Boolean,
-    isOnline: Boolean
+    isOnline: Boolean,
+    onMediaClick: (MediaUiModel) -> Unit
 ) {
     val brush = shimmerBrush()
     val context = LocalContext.current
@@ -233,6 +234,9 @@ fun MediaItem(
         modifier = Modifier
             .width(150.dp)
             .padding(16.dp)
+            .clickable {
+                onMediaClick(media)
+            }
     ) {
         if (shouldDisplayImage && media.coverImage != null) {
             Image(

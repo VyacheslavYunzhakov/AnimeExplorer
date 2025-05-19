@@ -47,12 +47,6 @@ class HomeViewModel @Inject constructor(
 
     init {
         loadMediaPage()
-    }
-
-    private fun loadMediaPage() {
-        loadUpcoming()
-        loadAiring()
-        loadTrending()
         viewModelScope.launch {
             networkMonitor.isConnected
                 .distinctUntilChanged()    // only when online/offline actually flips
@@ -61,6 +55,12 @@ class HomeViewModel @Inject constructor(
                     reloadFailedOrEmpty()
                 }
         }
+    }
+
+    private fun loadMediaPage() {
+        loadUpcoming()
+        loadAiring()
+        loadTrending()
     }
 
     private fun reloadFailedOrEmpty() {
