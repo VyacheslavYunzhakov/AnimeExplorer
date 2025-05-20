@@ -51,4 +51,5 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 apollo = { id = "com.apollographql.apollo3", version.ref = "apollo" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization" }
 

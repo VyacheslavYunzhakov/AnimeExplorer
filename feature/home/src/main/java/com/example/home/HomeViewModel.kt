@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.interactors.HomeInteractor
 import com.example.domain.interactors.NetworkMonitor
+import com.example.ui.MediaUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,12 +21,6 @@ data class MediaSectionState (
     val media: List<MediaUiModel> = emptyList(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null
-)
-data class MediaUiModel(
-    val id: Int,
-    val coverImage: String?,
-    val title: String?,
-    val averageScore: Int?
 )
 
 @HiltViewModel

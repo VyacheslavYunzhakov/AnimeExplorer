@@ -42,12 +42,12 @@ android {
 }
 
 dependencies {
-
-    implementation(project(":core:network"))
     implementation(project(":feature:home"))
     implementation(project(":feature:mediainfo"))
-    implementation(project(":core:data"))
+    implementation(project(":feature:section"))
     implementation(project(":core:domain"))
+    implementation(project(":core:data"))
+    implementation(project(":core:network"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

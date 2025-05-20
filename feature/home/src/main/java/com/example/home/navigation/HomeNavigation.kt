@@ -7,8 +7,8 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.example.home.HomeScreen
-import com.example.home.MediaUiModel
 import kotlinx.serialization.Serializable
+import com.example.home.MediaSectionType
 
 @Serializable data object HomeRoute
 
@@ -17,11 +17,12 @@ import kotlinx.serialization.Serializable
 fun NavController.navigateToHome(navOptions: NavOptions) = navigate(route = HomeRoute, navOptions)
 
 fun NavGraphBuilder.homeScreen(
-    onMediaClick: (MediaUiModel) -> Unit
+    onShowAllClick: (MediaSectionType) -> Unit,
+    onMediaClick: (Int) -> Unit
 ) {
     navigation<HomeBaseRoute>(startDestination = HomeRoute) {
         composable<HomeRoute> {
-            HomeScreen(onMediaClick)
+            HomeScreen(onMediaClick, onShowAllClick)
         }
     }
 }
