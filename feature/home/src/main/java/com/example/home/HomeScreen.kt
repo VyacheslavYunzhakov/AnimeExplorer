@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.ui.MediaItem
+import com.example.ui.MediaSectionState
 import com.example.ui.MediaUiModel
 import com.example.ui.ShimmerMediaItem
 

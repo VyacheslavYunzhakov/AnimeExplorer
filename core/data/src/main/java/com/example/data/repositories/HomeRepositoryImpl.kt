@@ -8,8 +8,8 @@ class HomeRepositoryImpl @Inject constructor(
     private val fetchingAnimePageApi: FetchingAnimePageApi
 ) : HomeRepository {
 
-    override suspend fun getUpcomingPage(): List<Media> {
-        val mediaList = fetchingAnimePageApi.fetchUpcomingPage()
+    override suspend fun getUpcomingPage(count: Int, page: Int): List<Media> {
+        val mediaList = fetchingAnimePageApi.fetchUpcomingPage(count, page)
         return mediaList.map { dto ->
             Media(
                 id = dto.id,
@@ -20,8 +20,8 @@ class HomeRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getTrendingPage(): List<Media> {
-        val mediaList = fetchingAnimePageApi.fetchTrendingPage()
+    override suspend fun getTrendingPage(count: Int, page: Int): List<Media> {
+        val mediaList = fetchingAnimePageApi.fetchTrendingPage(count, page)
         return mediaList.map { dto ->
             Media(
                 id = dto.id,
@@ -32,8 +32,8 @@ class HomeRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getAiringPage(): List<Media> {
-        val mediaList = fetchingAnimePageApi.fetchAiringPage()
+    override suspend fun getAiringPage(count: Int, page: Int): List<Media> {
+        val mediaList = fetchingAnimePageApi.fetchAiringPage(count, page)
         return mediaList.map { dto ->
             Media(
                 id = dto.id,

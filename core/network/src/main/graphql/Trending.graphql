@@ -1,5 +1,5 @@
-query Trending {
-    Page(page: 1, perPage: 10) {
+query Trending ($count: Int, $page: Int) {
+    Page(page: $page, perPage: $count) {
         media(
             sort: TRENDING_DESC,
             type: ANIME

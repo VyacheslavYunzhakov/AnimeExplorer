@@ -1,6 +1,8 @@
 package com.example.network.api
 
 import com.apollographql.apollo3.ApolloClient
+import com.apollographql.apollo3.api.Optional
+import com.example.core.network.CurrentlyAiringAnimeQuery
 import com.example.core.network.NotYetReleasedQuery
 import com.example.core.network.TrendingQuery
 import com.example.network.model.MediaDto
@@ -8,13 +10,12 @@ import com.example.network.model.TitleDto
 import javax.inject.Inject
 import javax.inject.Singleton
 
-
 @Singleton
 class FetchingAnimePageApiImpl @Inject constructor(
     private val apolloClient: ApolloClient
 ):FetchingAnimePageApi {
-    override suspend fun fetchAiringPage(): List<MediaDto> {
-        val response = apolloClient.query(TrendingQuery()).execute()
+    override suspend fun fetchAiringPage(count: Int, page: Int): List<MediaDto> {
+        val response = apolloClient.query(CurrentlyAiringAnimeQuery(Optional.Present(count), Optional.Present(page))).execute()
         val mediaList = return response.data
             ?.Page
             ?.media
@@ -32,8 +33,8 @@ class FetchingAnimePageApiImpl @Inject constructor(
         return mediaList
     }
 
-    override suspend fun fetchTrendingPage(): List<MediaDto> {
-        val response = apolloClient.query(TrendingQuery()).execute()
+    override suspend fun fetchTrendingPage(count: Int, page: Int): List<MediaDto> {
+        val response = apolloClient.query(TrendingQuery(Optional.Present(count), Optional.Present(page))).execute()
         val mediaList = return response.data
             ?.Page
             ?.media
@@ -51,8 +52,8 @@ class FetchingAnimePageApiImpl @Inject constructor(
         return mediaList
     }
 
-    override suspend fun fetchUpcomingPage(): List<MediaDto> {
-        val response = apolloClient.query(NotYetReleasedQuery()).execute()
+    override suspend fun fetchUpcomingPage(count: Int, page: Int): List<MediaDto> {
+        val response = apolloClient.query(NotYetReleasedQuery(Optional.Present(count), Optional.Present(page))).execute()
         val mediaList = return response.data
             ?.Page
             ?.media

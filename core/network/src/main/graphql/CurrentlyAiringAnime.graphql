@@ -1,5 +1,5 @@
-query CurrentlyAiringAnime {
-    Page(page: 1, perPage: 10) {
+query CurrentlyAiringAnime($count: Int, $page: Int) {
+    Page(page: $page, perPage: $count) {
         media(
             status: RELEASING,
             type: ANIME,

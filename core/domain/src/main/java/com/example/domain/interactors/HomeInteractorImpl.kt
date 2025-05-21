@@ -7,9 +7,9 @@ import javax.inject.Inject
 class HomeInteractorImpl @Inject constructor(
     private val repository: HomeRepository
 ): HomeInteractor {
-    override suspend fun getUpcomingPage(): List<Media> = repository.getUpcomingPage()
+    override suspend fun getUpcomingPage(count: Int, page: Int): List<Media> = repository.getUpcomingPage(count, page)
 
-    override suspend fun getTrendingPage(): List<Media> = repository.getTrendingPage()
+    override suspend fun getTrendingPage(count: Int, page: Int): List<Media> = repository.getTrendingPage(count, page)
 
-    override suspend fun getAiringPage(): List<Media> = repository.getAiringPage()
+    override suspend fun getAiringPage(count: Int, page: Int): List<Media> = repository.getAiringPage(count, page)
 }

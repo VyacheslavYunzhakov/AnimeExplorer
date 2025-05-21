@@ -1,5 +1,5 @@
-query NotYetReleased {
-    Page(page: 1, perPage: 10) {
+query NotYetReleased ($count: Int, $page: Int) {
+    Page(page: $page, perPage: $count) {
         media(
             status: NOT_YET_RELEASED,
             type: ANIME,
