@@ -17,13 +17,11 @@ import javax.inject.Singleton
 object DataModule {
 
     @Provides
-    @Singleton
     fun provideHomeRepository(fetchingAnimePageApi: FetchingAnimePageApi): HomeRepository {
         return HomeRepositoryImpl(fetchingAnimePageApi)
     }
 
     @Provides
-    @Singleton
     fun provideMediaInfoRepository(mediaInfoApi: MediaInfoApi): MediaInfoRepository {
         return MediaInfoRepositoryImpl(mediaInfoApi)
     }

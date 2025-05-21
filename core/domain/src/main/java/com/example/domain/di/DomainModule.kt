@@ -17,13 +17,11 @@ import javax.inject.Singleton
 object DomainModule {
 
     @Provides
-    @Singleton
     fun provideHomeInteractor(repository: HomeRepository): HomeInteractor {
         return HomeInteractorImpl(repository)
     }
 
     @Provides
-    @Singleton
     fun provideMediaInfoInteractor(repository: MediaInfoRepository): MediaInfoInteractor {
         return MediaInfoInteractorImpl(repository)
     }

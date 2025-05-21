@@ -10,7 +10,6 @@ import com.example.network.model.TitleDto
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@Singleton
 class FetchingAnimePageApiImpl @Inject constructor(
     private val apolloClient: ApolloClient
 ):FetchingAnimePageApi {

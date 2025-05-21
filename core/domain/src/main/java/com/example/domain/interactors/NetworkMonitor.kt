@@ -11,9 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class NetworkMonitor @Inject constructor(
     @ApplicationContext private val context: Context
 ) {

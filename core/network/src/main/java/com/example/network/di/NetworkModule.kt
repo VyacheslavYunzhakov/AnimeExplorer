@@ -16,7 +16,6 @@ import javax.inject.Singleton
 object NetworkModule {
 
     @Provides
-    @Singleton
     fun provideApolloClient(): ApolloClient {
         return ApolloClient.Builder()
             .serverUrl("https://graphql.anilist.co")
@@ -24,13 +23,11 @@ object NetworkModule {
     }
 
     @Provides
-    @Singleton
     fun provideUpcomingApi(apolloClient: ApolloClient): FetchingAnimePageApi {
         return FetchingAnimePageApiImpl(apolloClient)
     }
 
     @Provides
-    @Singleton
     fun provideMediaInfoApi(apolloClient: ApolloClient): MediaInfoApi {
         return MediaInfoApiImpl(apolloClient)
     }

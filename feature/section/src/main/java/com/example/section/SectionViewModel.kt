@@ -1,5 +1,6 @@
 package com.example.section
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -37,6 +38,7 @@ class SectionViewModel @Inject constructor(
     private var currentPage = AtomicInteger(1)
 
     init {
+        Log.d("myTag","SectionViewModel created")
         loadNextPage(sectionType)
         viewModelScope.launch {
             networkMonitor.isConnected
@@ -101,6 +103,7 @@ class SectionViewModel @Inject constructor(
     }
 
     fun reloadPage() {
+        currentPage.set(0)
         loadNextPage(sectionType)
     }
 }

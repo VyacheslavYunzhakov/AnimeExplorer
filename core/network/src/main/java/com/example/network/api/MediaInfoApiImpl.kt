@@ -5,9 +5,7 @@ import com.apollographql.apollo3.api.Optional
 import com.example.core.network.GetMediaInfoQuery
 import com.example.network.model.MediaInfoDto
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class MediaInfoApiImpl @Inject constructor(
     private val apolloClient: ApolloClient
 ): MediaInfoApi {
