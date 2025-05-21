@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
-val DEFAULT_PER_PAGE = 10
+const val DEFAULT_PER_PAGE = 10
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val interactor: HomeInteractor,

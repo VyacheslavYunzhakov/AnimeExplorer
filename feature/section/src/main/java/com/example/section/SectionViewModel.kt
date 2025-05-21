@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
-val DEFAULT_PER_PAGE = 15
+const val DEFAULT_PER_PAGE = 15
 @HiltViewModel
 class SectionViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,

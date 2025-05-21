@@ -34,7 +34,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.ui.MediaItem
 import com.example.ui.ShimmerMediaItem
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
 
 enum class SectionType {
     UPCOMING,
