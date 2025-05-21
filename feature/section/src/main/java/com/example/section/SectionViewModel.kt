@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
 val DEFAULT_PER_PAGE = 15
@@ -33,8 +34,10 @@ class SectionViewModel @Inject constructor(
 
     private val sectionType: SectionType = checkNotNull(savedStateHandle["sectionType"])
 
+    private var currentPage = AtomicInteger(1)
+
     init {
-        loadPage(sectionType)
+        loadNextPage(sectionType)
         viewModelScope.launch {
             networkMonitor.isConnected
                 .distinctUntilChanged()    // only when online/offline actually flips
@@ -49,21 +52,24 @@ class SectionViewModel @Inject constructor(
         if (_uiState.value.errorMessage != null ||
             (_uiState.value.media.isEmpty() && !_uiState.value.isLoading)
         ) {
-            loadPage(sectionType)
+            loadNextPage(sectionType)
         }
     }
 
-    fun loadPage(type: SectionType) {
+    fun loadNextPage(type: SectionType = sectionType) {
+        val pageToLoad = currentPage.get()
+
         viewModelScope.launch {
             _uiState.update {
-                it.copy(media = emptyList(), isLoading = true, errorMessage = null)
+                it.copy(isLoading = true, errorMessage = null)
             }
             try {
                 val domainList = when (type) {
-                    SectionType.UPCOMING -> interactor.getUpcomingPage(count = DEFAULT_PER_PAGE, page = 1)
-                    SectionType.TRENDING -> interactor.getTrendingPage(count = DEFAULT_PER_PAGE, page = 1)
-                    SectionType.CURRENTLY_AIRING -> interactor.getAiringPage(count = DEFAULT_PER_PAGE, page = 1)
+                    SectionType.UPCOMING -> interactor.getUpcomingPage(count = DEFAULT_PER_PAGE, page = pageToLoad)
+                    SectionType.TRENDING -> interactor.getTrendingPage(count = DEFAULT_PER_PAGE, page = pageToLoad)
+                    SectionType.CURRENTLY_AIRING -> interactor.getAiringPage(count = DEFAULT_PER_PAGE, page = pageToLoad)
                 }
+
                 val uiList = domainList.map { domain ->
                     MediaUiModel(
                         id = domain.id,
@@ -71,13 +77,18 @@ class SectionViewModel @Inject constructor(
                         title = domain.title,
                         averageScore = domain.averageScore
                     )
-                    }
+                }
+
                 _uiState.update {
+                    val existingIds = it.media.map { media -> media.id }.toSet()
+                    val newItems = uiList.filterNot { media -> media.id in existingIds }
+
                     it.copy(
-                        media = uiList,
+                        media = it.media + newItems,
                         isLoading = false
                     )
                 }
+                currentPage.incrementAndGet()
             } catch (t: Throwable) {
                 _uiState.update {
                     it.copy(
@@ -90,6 +101,6 @@ class SectionViewModel @Inject constructor(
     }
 
     fun reloadPage() {
-        loadPage(sectionType)
+        loadNextPage(sectionType)
     }
 }

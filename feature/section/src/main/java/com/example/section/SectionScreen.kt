@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,20 +17,24 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.MediaItem
 import com.example.ui.ShimmerMediaItem
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 
 enum class SectionType {
     UPCOMING,
@@ -41,21 +44,36 @@ enum class SectionType {
 
 @Composable
 fun SectionScreen(
+    viewModel: SectionViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
-    onMediaClick: (Int) -> Unit,
-    viewModel: SectionViewModel = hiltViewModel()
+    onMediaClick: (Int) -> Unit
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     val gridState: LazyGridState = rememberLazyGridState()
-    val visibleItemsRange by remember {
-        derivedStateOf { gridState.layoutInfo.visibleItemsInfo.map { it.index }.toSet() }
+    val visibleIndices = remember { mutableStateOf<Set<Int>>(emptySet()) }
+    val isOnline by viewModel.isOnline.collectAsState()
+
+    LaunchedEffect(gridState) {
+        snapshotFlow {
+            gridState.layoutInfo.visibleItemsInfo.map { it.index }.toSet()
+        }.collect { visibleIndices.value = it }
     }
 
-    val state = viewModel.uiState.collectAsStateWithLifecycle()
-    val isLoading = state.value.isLoading
-    val media = state.value.media
-    val errorMessage = state.value.errorMessage
-    val isOnline = viewModel.isOnline.collectAsStateWithLifecycle()
-
+    LaunchedEffect(gridState) {
+        snapshotFlow {
+            val lastVisible = gridState.layoutInfo.visibleItemsInfo
+                .lastOrNull()
+                ?.index
+                ?: -1
+            lastVisible to gridState.isScrollInProgress
+        }
+            .filter { (lastVisible, isScrolling) ->
+                isScrolling && lastVisible >= uiState.media.size - 1
+            }
+            .collect {
+                viewModel.loadNextPage()
+            }
+    }
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         Icon(
             imageVector = Icons.Default.ArrowBack,
@@ -66,57 +84,47 @@ fun SectionScreen(
         )
 
         Spacer(Modifier.height(8.dp))
-
-        // — Grid container
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxSize()
-        ) {
-            when {
-                // 1) Loading placeholders
-                isLoading && media.isEmpty() -> {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(3),
-                        contentPadding = PaddingValues(8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(6) {
-                            ShimmerMediaItem()
-                        }
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (uiState.media.isEmpty() && uiState.isLoading) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(3),
+                    contentPadding = PaddingValues(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(15) {
+                        ShimmerMediaItem()
                     }
                 }
-
-                // 2) Error & retry
-                errorMessage != null -> {
-                    Text(
-                        text = errorMessage,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .clickable { viewModel.reloadPage() }
-                    )
+            } else if (uiState.media.isEmpty() && uiState.errorMessage != null) {
+                // initial error
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = uiState.errorMessage ?: "Unknown error")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = { viewModel.reloadPage() }) {
+                        Text("Retry")
+                    }
                 }
-
-                // 3) Actual grid
-                else -> {
-                    LazyVerticalGrid(
-                        state = gridState,
-                        columns = GridCells.Fixed(3),
-                        contentPadding = PaddingValues(8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        itemsIndexed(media, key = { index, item -> item.id }) { index, item ->
-                            val isVisible = visibleItemsRange.contains(index)
-                            MediaItem(
-                                media     = item,
-                                isVisible = isVisible,
-                                isOnline  = isOnline.value,
-                                onMediaClick = { onMediaClick(item.id) }
-                            )
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(3),
+                    state = gridState,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    itemsIndexed(uiState.media, key = { index, item -> item.id }) { index, item ->
+                        MediaItem(
+                            media = item,
+                            isVisible = index in visibleIndices.value,
+                            isOnline = isOnline,
+                            onMediaClick = { onMediaClick(item.id) }
+                        )
+                    }
+                    if (uiState.isLoading) {
+                        items(15) {
+                            ShimmerMediaItem()
                         }
                     }
                 }
@@ -124,3 +132,4 @@ fun SectionScreen(
         }
     }
 }
+
