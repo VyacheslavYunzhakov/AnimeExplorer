@@ -1,7 +1,10 @@
 package com.example.home
 
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import coil.compose.AsyncImagePainter
+import coil.request.ImageRequest
 import com.example.domain.interactors.HomeInteractor
 import com.example.domain.interactors.NetworkMonitor
 import com.example.ui.MediaSectionState
@@ -36,6 +39,18 @@ class HomeViewModel @Inject constructor(
 
     private val _uiAiringState = MutableStateFlow(MediaSectionState(isLoading = true))
     val uiAiringState: StateFlow<MediaSectionState> = _uiAiringState.asStateFlow()
+
+
+    private val _loadedImages = mutableStateMapOf<Int, Boolean>()
+    val loadedImages: Map<Int, Boolean> get() = _loadedImages
+
+    fun markImageLoaded(id: Int) {
+        _loadedImages[id] = true
+    }
+
+    fun hasImageLoaded(id: Int): Boolean {
+        return _loadedImages[id] == true
+    }
 
     init {
         loadMediaPage()

@@ -1,6 +1,7 @@
 package com.example.section
 
 import android.util.Log
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -36,6 +37,18 @@ class SectionViewModel @Inject constructor(
     private val sectionType: SectionType = checkNotNull(savedStateHandle["sectionType"])
 
     private var currentPage = AtomicInteger(1)
+
+    private val _loadedImages = mutableStateMapOf<Int, Boolean>()
+    val loadedImages: Map<Int, Boolean> get() = _loadedImages
+
+    fun markImageLoaded(id: Int) {
+        _loadedImages[id] = true
+    }
+
+    fun hasImageLoaded(id: Int): Boolean {
+        return _loadedImages[id] == true
+    }
+
 
     init {
         Log.d("myTag","SectionViewModel created")

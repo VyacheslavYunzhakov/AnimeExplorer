@@ -21,36 +21,43 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun MediaItem(
     media: MediaUiModel,
     isVisible: Boolean,
     isOnline: Boolean,
-    onMediaClick: (Int) -> Unit
+    onMediaClick: (Int) -> Unit,
+    hasLoadedBefore: Boolean,
+    onImageLoaded: () -> Unit
 ) {
     val brush = shimmerBrush()
-    val context = LocalContext.current
 
-    val request = ImageRequest.Builder(context)
+    val request = ImageRequest.Builder(LocalContext.current)
         .data(media.coverImage)
         .diskCachePolicy(CachePolicy.ENABLED)
         .memoryCachePolicy(CachePolicy.ENABLED)
         .build()
 
-    val painter = rememberAsyncImagePainter(request)
+    val painter = rememberAsyncImagePainter(model = request)
     val painterState = painter.state
 
+    LaunchedEffect(painterState) {
+        if (painterState is AsyncImagePainter.State.Success) {
+            onImageLoaded()
+        }
+    }
+
     val shouldDisplayImage = painterState is AsyncImagePainter.State.Success ||
+            hasLoadedBefore ||
             (isVisible && isOnline)
 
     Column(
         modifier = Modifier
             .width(150.dp)
             .padding(16.dp)
-            .clickable {
-                onMediaClick(media.id)
-            }
+            .clickable { onMediaClick(media.id) }
     ) {
         if (shouldDisplayImage && media.coverImage != null) {
             Image(
@@ -74,7 +81,7 @@ fun MediaItem(
         Text(
             text = media.title.orEmpty(),
             style = MaterialTheme.typography.titleMedium,
-            maxLines = 2, minLines = 2
+            maxLines = 2
         )
         Text(
             text = "Score: ${media.averageScore ?: "N/A"}",

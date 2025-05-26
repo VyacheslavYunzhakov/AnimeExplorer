@@ -114,11 +114,16 @@ fun SectionScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     itemsIndexed(uiState.media, key = { index, item -> item.id }) { index, item ->
+                        val hasLoadedBefore = viewModel.hasImageLoaded(item.id)
                         MediaItem(
                             media = item,
                             isVisible = index in visibleIndices.value,
                             isOnline = isOnline,
-                            onMediaClick = { onMediaClick(item.id) }
+                            onMediaClick = { onMediaClick(item.id) },
+                            hasLoadedBefore = hasLoadedBefore,
+                            onImageLoaded = {
+                                viewModel.markImageLoaded(item.id)
+                            }
                         )
                     }
                     if (uiState.isLoading) {

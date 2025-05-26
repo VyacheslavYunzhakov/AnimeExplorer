@@ -55,16 +55,18 @@ fun MediaSection(
     onMediaClick: (Int) -> Unit,
     onErrorClick: (MediaSectionType) -> Unit,
     onShowAllClick: (MediaSectionType) -> Unit,
-    isOnline: Boolean
+    isOnline: Boolean,
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
     val listState = rememberLazyListState()
-
     val visibleItemsRange = remember {
         derivedStateOf {
             listState.layoutInfo.visibleItemsInfo.map { it.index }.toSet()
         }
     }
+
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
+        // Header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -89,6 +91,7 @@ fun MediaSection(
             )
         }
 
+        // Content
         Box(modifier = Modifier
             .fillMaxWidth()
             .height(280.dp)) {
@@ -105,9 +108,7 @@ fun MediaSection(
                         color = Color.Red,
                         modifier = Modifier
                             .align(Alignment.Center)
-                            .clickable {
-                                onErrorClick(sectionType)
-                            },
+                            .clickable { onErrorClick(sectionType) },
                     )
                 }
 
@@ -115,7 +116,17 @@ fun MediaSection(
                     LazyRow(state = listState) {
                         itemsIndexed(media) { index, item ->
                             val isVisible = visibleItemsRange.value.contains(index)
-                            MediaItem(media = item, isVisible = isVisible, isOnline, onMediaClick)
+                            val hasLoadedBefore = viewModel.hasImageLoaded(item.id)
+                            MediaItem(
+                                media = item,
+                                isVisible = isVisible,
+                                isOnline = isOnline,
+                                onMediaClick = onMediaClick,
+                                hasLoadedBefore = hasLoadedBefore,
+                                onImageLoaded = {
+                                    viewModel.markImageLoaded(item.id)
+                                }
+                            )
                         }
                     }
                 }
@@ -123,6 +134,7 @@ fun MediaSection(
         }
     }
 }
+
 
 
 @Composable
