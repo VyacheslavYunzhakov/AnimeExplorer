@@ -9,12 +9,18 @@ class HomeRepositoryImpl @Inject constructor(
 ) : HomeRepository {
 
     override suspend fun getUpcomingPage(count: Int, page: Int): List<Media> {
-        val mediaList = fetchingAnimePageApi.fetchUpcomingPage(count, page)
+        val mediaList = fetchingAnimePageApi.fetchUpcomingEpisodes(count, page)
         return mediaList.map { dto ->
+            val titleObj = dto.title
+            val titleText = titleObj?.userPreferred
+                ?: titleObj?.english
+                ?: titleObj?.romaji
+                ?: titleObj?.native
+                ?: ""
             Media(
                 id = dto.id,
                 coverImage = dto.coverImage,
-                title = dto.title?.english,
+                title = titleText,
                 averageScore = dto.averageScore
             )
         }

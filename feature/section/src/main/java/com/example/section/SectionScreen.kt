@@ -113,7 +113,7 @@ fun SectionScreen(
                     state = gridState,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    itemsIndexed(uiState.media, key = { index, item -> item.id }) { index, item ->
+                    itemsIndexed(uiState.media) { index, item ->
                         val hasLoadedBefore = viewModel.hasImageLoaded(item.id)
                         MediaItem(
                             media = item,

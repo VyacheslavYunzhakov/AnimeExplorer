@@ -1,0 +1,23 @@
+query UpcomingEpisodes($page: Int, $perPage: Int) {
+    Page(page: $page, perPage: $perPage) {
+        airingSchedules(sort: TIME, notYetAired: true) {
+            episode
+            timeUntilAiring
+            media {
+                id
+                title {
+                    userPreferred
+                    english
+                    romaji
+                    native
+                }
+                coverImage {
+                    large
+                }
+                averageScore
+                meanScore
+                synonyms
+            }
+        }
+    }
+}

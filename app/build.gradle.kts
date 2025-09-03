@@ -46,7 +46,6 @@ dependencies {
     implementation(project(":feature:mediainfo"))
     implementation(project(":feature:section"))
     implementation(project(":core:domain"))
-    implementation(project(":core:data"))
     implementation(project(":core:network"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

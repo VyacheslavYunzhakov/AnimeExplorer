@@ -1,0 +1,18 @@
+query UpcomingAnime($count: Int, $page: Int) {
+    Page(page: $page, perPage: $count) {
+        media(status: NOT_YET_RELEASED, sort: START_DATE, type: ANIME) {
+            title {
+                english
+            }
+            coverImage {
+                large
+            }
+            startDate {
+                year
+                month
+                day
+            }
+            averageScore
+        }
+    }
+}
