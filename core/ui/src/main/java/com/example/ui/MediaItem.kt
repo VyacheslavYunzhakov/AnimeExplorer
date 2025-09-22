@@ -1,10 +1,8 @@
 package com.example.ui
 
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -22,17 +20,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
-import coil.request.CachePolicy
-import coil.request.ImageRequest
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.shadow
@@ -43,13 +36,6 @@ import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
-import androidx.core.graphics.drawable.toBitmap
-import coil.ImageLoader
-import coil.request.SuccessResult
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun MediaItem(
@@ -57,74 +43,39 @@ fun MediaItem(
     isVisible: Boolean,
     isOnline: Boolean,
     onMediaClick: (Int) -> Unit,
-    hasLoadedBefore: Boolean,
-    onImageLoaded: (Bitmap) -> Unit
+    onImageLoaded: () -> Unit,
+    viewModel: ImagesViewModel
 ) {
     val brush = shimmerBrush()
-    val context = LocalContext.current
     val density = LocalDensity.current
 
-    // Локальные состояния для битмапов
     var originalBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var blurredBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
-    // ImageBitmap для Canvas (кэшируем)
     val originalImageBitmap = remember(originalBitmap) { originalBitmap?.asImageBitmap() }
     val blurredImageBitmap = remember(blurredBitmap) { blurredBitmap?.asImageBitmap() }
 
-    // Порог 100.dp в px
     val thresholdPx = with(density) { 100.dp.toPx() }
 
-    // Позиция элемента в окне (px)
-    var itemTopY by remember { mutableStateOf(0f) }
-    var itemHeightPx by remember { mutableStateOf(0f) }
+    var itemTopY by remember { mutableFloatStateOf(0f) }
+    var itemHeightPx by remember { mutableFloatStateOf(0f) }
 
-    // -----------------------
-    // Загрузка изображения (выполняется вручную через ImageLoader.execute)
-    // Запускаем загрузку когда есть URL и когда:
-    //  - пользователь видим и онлайн (isVisible && isOnline), или
-    //  - hasLoadedBefore (например, заранее разрешено)
-    // -----------------------
-    LaunchedEffect(media.coverImage, isVisible, isOnline, hasLoadedBefore) {
-        val url = media.coverImage
-        if (url.isNullOrEmpty()) return@LaunchedEffect
-
-        // если уже загружено — не загружаем снова
-        if (originalBitmap != null && blurredBitmap != null) return@LaunchedEffect
-
-        // условие, по которому стартуем загрузку
-        if (hasLoadedBefore || (isVisible && isOnline)) {
-            try {
-                val loader = ImageLoader(context)
-                val request = ImageRequest.Builder(context)
-                    .data(url)
-                    .allowHardware(false)
-                    .diskCachePolicy(CachePolicy.ENABLED)
-                    .memoryCachePolicy(CachePolicy.ENABLED)
-                    .build()
-
-                // Выполняем запрос в IO, затем блюрим в Default
-                val result = withContext(Dispatchers.IO) { loader.execute(request) }
-                if (result is SuccessResult) {
-                    val drawable = result.drawable
-                    val original = drawable.toBitmap() // преобразуем в Bitmap
-                    val blurred = withContext(Dispatchers.Default) { blurBitmap(context, original, 20f) }
-
-                    originalBitmap = original
-                    blurredBitmap = blurred
-
-                    // внешний коллбэк (как у тебя был)
-                    onImageLoaded(blurred)
-                }
-            } catch (e: Exception) {
-                // можно логировать ошибку, пока просто игнорируем
-                Log.w("MediaItem", "image load failed: ${e.message}")
+    val cacheKey = media.coverImage ?: media.id.toString()
+    LaunchedEffect(cacheKey, isVisible, isOnline) {
+        val cachedOrig = viewModel.getBitmap("${cacheKey}_orig")
+        val cachedBlur = viewModel.getBitmap("${cacheKey}_blur")
+        if (cachedOrig != null) {
+            originalBitmap = cachedOrig
+            blurredBitmap = cachedBlur ?: cachedOrig
+            onImageLoaded()
+        } else if (isVisible && isOnline) {
+            viewModel.loadAndCache(media.coverImage!!) { orig, blur ->
+                if (orig != null) { originalBitmap = orig; blurredBitmap = blur; onImageLoaded() }
             }
         }
     }
 
-    // Логика, показывать ли (или placeholder)
-    val shouldDisplayImage = originalBitmap != null || hasLoadedBefore || (isVisible && isOnline)
+    val shouldDisplayImage = originalBitmap != null && (isVisible && isOnline)
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -156,12 +107,9 @@ fun MediaItem(
                             itemHeightPx = coords.size.height.toFloat()
                         }
                 ) {
-                    // Canvas рисует две версии и режет по порогу
                     Canvas(modifier = Modifier.matchParentSize()) {
                         val canvasW = size.width
                         val canvasH = size.height
-
-                        // Позиция порога внутри канвы
                         val splitY = (thresholdPx - itemTopY).coerceIn(-Float.MAX_VALUE, Float.MAX_VALUE)
                         val splitInCanvas = splitY.coerceIn(0f, canvasH)
 
@@ -190,11 +138,7 @@ fun MediaItem(
                                 )
                             }
                         }
-
-                        // Если битмапы ещё не готовы — оставляем пустоту (placeholder под ним)
                     }
-
-                    // Если ничего ещё нет — показываем shimmer поверх канвы (чтобы не было пустоты)
                     if (originalBitmap == null && blurredBitmap == null) {
                         Box(
                             modifier = Modifier

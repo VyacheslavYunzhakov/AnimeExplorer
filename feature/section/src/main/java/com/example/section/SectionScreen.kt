@@ -16,7 +16,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -29,9 +29,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.ui.ImagesViewModel
 import com.example.ui.MediaItem
 import com.example.ui.ShimmerMediaItem
 import kotlinx.coroutines.flow.filter
@@ -47,7 +47,7 @@ fun SectionScreen(
     viewModel: SectionViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onMediaClick: (Int) -> Unit,
-    onItemPositioned: (String, String, Rect) -> Unit
+    imagesViewModel: ImagesViewModel= hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val gridState: LazyGridState = rememberLazyGridState()
@@ -77,7 +77,7 @@ fun SectionScreen(
     }
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         Icon(
-            imageVector = Icons.Default.ArrowBack,
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = "See more",
             modifier = Modifier
                 .size(32.dp)
@@ -116,16 +116,15 @@ fun SectionScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     itemsIndexed(uiState.media) { index, item ->
-                        val hasLoadedBefore = viewModel.hasImageLoaded(item.id)
                         MediaItem(
                             media = item,
                             isVisible = index in visibleIndices.value,
                             isOnline = isOnline,
                             onMediaClick = { onMediaClick(item.id) },
-                            hasLoadedBefore = hasLoadedBefore,
                             onImageLoaded = {
                                 viewModel.markImageLoaded(item.id)
-                            }
+                            },
+                            imagesViewModel
                         )
                     }
                     if (uiState.isLoading) {
