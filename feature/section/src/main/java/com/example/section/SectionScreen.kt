@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.ui.MediaItem
@@ -45,7 +46,8 @@ enum class SectionType {
 fun SectionScreen(
     viewModel: SectionViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
-    onMediaClick: (Int) -> Unit
+    onMediaClick: (Int) -> Unit,
+    onItemPositioned: (String, String, Rect) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val gridState: LazyGridState = rememberLazyGridState()
