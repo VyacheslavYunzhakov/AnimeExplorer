@@ -1,7 +1,17 @@
 package com.example.network.model
 
 data class MediaInfoDto (
-    val description: String?,
-    val coverImage: String?,
-    val bannerImage: String?
+    val id: Int?,
+    val title: String,
+    val subTitle: String?,
+    val bannerUrl: String?,
+    val coverUrl: String?,
+    val score: Double?, // 0..10
+    val year: Int?,
+    val status: String?,
+    val genres: List<String>,
+    val episodes: Int?,
+    val durationMinutes: Int?,
+    val studio: String?,
+    val descriptionHtml: String?
 )
